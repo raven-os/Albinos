@@ -26,4 +26,5 @@ file(GLOB_RECURSE SOURCES_LIB lib/*.cpp)
 
 add_executable(service ${SOURCES_SERVICE})
 add_library(config SHARED ${SOURCES_LIB})
+target_include_directories(config PUBLIC vendor/uvw/src vendor/uvw/deps/libuv/include)
 add_subdirectory(tests)
