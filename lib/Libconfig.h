@@ -15,6 +15,28 @@ namespace LibConfig
 #endif
 
     ///
+    /// \brief contain all possible returned values for the API
+    ///
+    enum ReturnedValue
+      {
+
+       /// returned if error is not managed
+       UNKNOWN,
+
+       /// returned in case of success
+       SUCCESS,
+
+       /// returned if one of given parameters isn't good
+       BAD_PARAMETERS,
+
+       /// returned if socket file is not found
+       SOCKET_NOT_FOUND,
+
+       /// returned if an error occur when connecting
+       CONNECTION_ERROR,
+      };
+
+    ///
     /// \brief type of function pointer for setting change subscription
     ///
     typedef void (*FCPTR_ON_CHANGE_NOTIFIER)(void *data, char const *newValue);
