@@ -24,7 +24,6 @@ namespace raven
       from_json(json_data, cfg);
       std::cout << "json receive:\n" << std::setw(4) << json_data << std::endl;
       std::cout << "cfg.config_name: " << cfg.config_name << std::endl;
-      std::cout << "cfg.provider: " << cfg.provider << std::endl;
     }
 
     service()
@@ -49,7 +48,7 @@ namespace raven
           try
             {
               auto json_data = json::json::parse(data_str);
-              std::string command_order = json_data.at("order").get<std::string>();
+              std::string command_order = json_data.at(raven::request_keyword).get<std::string>();
               order_registry.at(command_order)(json_data);
             }
           catch (const json::json::exception &error)
