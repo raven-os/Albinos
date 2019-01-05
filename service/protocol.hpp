@@ -44,6 +44,7 @@ namespace raven
 
   inline void from_json(const raven::json::json &json_data, config_load &cfg)
   {
+      //! We are checking if the config key keyword is present, otherwise it's will probably a read only value
       if (json_data.count(config_key_keyword) > 0) {
           cfg.config_key = json_data.at(config_key_keyword).get<std::string>();
       } else if (json_data.count(config_read_only_key_keyword) > 0) {
@@ -99,7 +100,7 @@ namespace raven
     std::string setting_name;
   };
 
-  inline void from_json(const raven::json::json &json_data, setting_remove& cfg)
+  inline void from_json(const raven::json::json &json_data, setting_remove &cfg)
   {
       cfg.id = json_data.at(config_id).get<std::uint32_t>();
       cfg.setting_name = json_data.at(setting_name).get<std::string>();
