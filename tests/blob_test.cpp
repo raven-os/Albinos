@@ -70,5 +70,5 @@ TEST_F(blob_test, str_blob)
     db_ << "select data from blob where name = ?" << "dablob" >>
         [&](std::vector<char> data) { value_after = data; };
     raven::db::blob<char> lala(value_after);
-    ASSERT_STREQ(lala.get_value().c_str(), "il est jolie mon blob");
+    ASSERT_STREQ(lala.get_value_string().c_str(), "il est jolie mon blob");
 }
