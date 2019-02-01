@@ -3,6 +3,7 @@
 //
 
 #include <gtest/gtest.h>
+#include <filesystem>
 #include "config_db.hpp"
 
 class blob_test : public ::testing::Test
@@ -20,7 +21,7 @@ protected:
 
   void TearDown() override
   {
-    db_ << "drop table blob;";
+      std::filesystem::remove("blob_test.db");
   }
 
   sqlite::database db_{sqlite::database("blob_test.db")};

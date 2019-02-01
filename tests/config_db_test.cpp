@@ -3,6 +3,7 @@
 //
 
 #include <gtest/gtest.h>
+#include <filesystem>
 #include "config_db.hpp"
 
 class config_db_test : public ::testing::Test
@@ -10,7 +11,7 @@ class config_db_test : public ::testing::Test
 protected:
   void TearDown() override
   {
-      db.get_sqlite_db() << "drop table configIndex;";
+      std::filesystem::remove("lala.db");
   }
 
   raven::db::config_db db{"lala.db"};
@@ -59,6 +60,23 @@ TEST_F(config_db_test, create_config)
     ASSERT_EQ(selectId, 5);
     db.get_sqlite_db() << "select name from configIndex where id = ?;" << id >> select_name;
     ASSERT_STREQ(select_name.c_str(), "lala5_5");
+
+    //! test with config that share the same name
+
+    id = db.create_config("lala");
+    db.get_sqlite_db() << "select id from configIndex ORDER BY id DESC LIMIT 1;" >> selectId;
+    ASSERT_EQ(id, 6);
+    ASSERT_EQ(selectId, 6);
+    db.get_sqlite_db() << "select name from configIndex where id = ?;" << id >> select_name;
+    ASSERT_STREQ(select_name.c_str(), "lala_6");
+
+    id = db.create_config("lala");
+    db.get_sqlite_db() << "select id from configIndex ORDER BY id DESC LIMIT 1;" >> selectId;
+    ASSERT_EQ(id, 7);
+    ASSERT_EQ(selectId, 7);
+    db.get_sqlite_db() << "select name from configIndex where id = ?;" << id >> select_name;
+    ASSERT_STREQ(select_name.c_str(), "lala_7");
+
 
     //! cleanup
     db.get_sqlite_db() << "drop table if exists lala1_1;";
