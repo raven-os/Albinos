@@ -80,7 +80,7 @@ namespace raven::db
     long create_config(const std::string &name)
     {
         int maxId;
-        database_ << "select coalesce(max(id), 0) from configIndex;" >> maxId;
+        database_ << "select coalesce(max(id), 0) from configIndex;" >> maxId; // TODO: change to get real increment count
         std::ostringstream new_table_name("");
         new_table_name << name << "_" << maxId + 1;
         database_ << "create table if not exists " + new_table_name.str() + " (" +
@@ -131,6 +131,29 @@ namespace raven::db
         //}
     }
 
+    template<typename T>
+    void update_setting(long config_id, const std::string &name, const std::vector<T> &value)
+    {
+        bool config_exist;
+        database_ << "select exists(select 1 from configIndex where id = ?);" << config_id >> config_exist;
+        if (config_exist) {
+            std::string table_name;
+            database_ << "select name from configIndex where id = ?" << config_id >> table_name;
+            bool setting_exist;
+            database_ << "select exists(select 1 from " + table_name + " where setting_name = ?);" << name
+                      >> setting_exist;
+            if (setting_exist) {
+                database_ << "update " + table_name + " set setting_value = ? where setting_name = ?;"
+                          << blob<T>(value) << name;
+            } else {
+                database_ << "insert into " + table_name + "(setting_name, setting_value) values (?,?);"
+                          << name << blob<T>(value);
+            }
+        } //else {
+        // TODO gestion d'erreur quand la config `config_id` n'existe pas
+        //}
+    }
+
     template<typename valueType>
     valueType get_setting(long config_id, const std::string &name)
     {
@@ -174,6 +197,28 @@ namespace raven::db
         // TODO gestion d'erreur quand la config `config_id` n'existe pas
         //}
         return res;
+    }
+
+    template<typename T>
+    blob<T> get_setting_blob(long config_id, const std::string &name)
+    {
+        bool config_exist;
+        database_ << "select exists(select 1 from configIndex where id = ?);" << config_id >> config_exist;
+        if (config_exist) {
+            std::string table_name;
+            database_ << "select name from configIndex where id = ?" << config_id >> table_name;
+            bool setting_exist;
+            database_ << "select exists(select 1 from " + table_name + " where setting_name = ?);" << name
+                      >> setting_exist;
+            if (setting_exist) {
+                std::vector<T> tmpres;
+                database_ << "select setting_value from " + table_name + " where setting_name= ?;" << name >> tmpres;
+                return blob<T>(tmpres);
+            }
+        } //else {
+        // TODO gestion d'erreur quand la config `config_id` n'existe pas
+        //}
+        return blob<T>(std::vector<T>{});
     }
 
     void delete_setting(long config_id, const std::string &name)
