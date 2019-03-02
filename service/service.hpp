@@ -168,7 +168,8 @@ namespace raven
         const config_create_answer answer{"Foo", "Foo"};
         json::json response_json_data;
         to_json(response_json_data, answer);
-        sock.write(response_json_data.dump().data(), static_cast<unsigned int>(response_json_data.dump().size()));
+        auto response_str = response_json_data.dump();
+        sock.write(response_str.data(), static_cast<unsigned int>(response_str.size()));
     }
 
     void load_config(json::json &json_data, uvw::PipeHandle &sock)
@@ -285,17 +286,17 @@ namespace raven
         if (std::filesystem::exists(service_.socket_path_)) {
             std::filesystem::remove(service_.socket_path_);
         }
-            CHECK_FALSE(service_.create_socket());
-            CHECK(service_.create_socket());
-            CHECK(service_.clean_socket());
+        CHECK_FALSE(service_.create_socket());
+        CHECK(service_.create_socket());
+        CHECK(service_.clean_socket());
     }
 
     TEST_CASE_CLASS ("test clean socket")
     {
         service service_;
-            CHECK_FALSE(service_.clean_socket());
-            CHECK_FALSE(service_.create_socket());
-            CHECK(service_.clean_socket());
+        CHECK_FALSE(service_.clean_socket());
+        CHECK_FALSE(service_.create_socket());
+        CHECK(service_.clean_socket());
     }
 
     static void test_client_server_communication(json::json request, json::json expected_answer) noexcept
@@ -307,7 +308,8 @@ namespace raven
         client->once<uvw::ConnectEvent>([&request](const uvw::ConnectEvent &, uvw::PipeHandle &handle) {
             CHECK(handle.writable());
             CHECK(handle.readable());
-            handle.write(request.dump().data(), static_cast<unsigned int>(request.dump().size()));
+            auto request_str = request.dump();
+            handle.write(request_str.data(), static_cast<unsigned int>(request_str.size()));
             handle.read();
         });
 
