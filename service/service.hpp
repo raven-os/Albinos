@@ -285,17 +285,17 @@ namespace raven
         if (std::filesystem::exists(service_.socket_path_)) {
             std::filesystem::remove(service_.socket_path_);
         }
-            CHECK_FALSE(service_.create_socket());
-            CHECK(service_.create_socket());
-            CHECK(service_.clean_socket());
+        CHECK_FALSE(service_.create_socket());
+        CHECK(service_.create_socket());
+        CHECK(service_.clean_socket());
     }
 
     TEST_CASE_CLASS ("test clean socket")
     {
         service service_;
-            CHECK_FALSE(service_.clean_socket());
-            CHECK_FALSE(service_.create_socket());
-            CHECK(service_.clean_socket());
+        CHECK_FALSE(service_.clean_socket());
+        CHECK_FALSE(service_.create_socket());
+        CHECK(service_.clean_socket());
     }
 
     static void test_client_server_communication(json::json request, json::json expected_answer) noexcept
