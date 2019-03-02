@@ -38,19 +38,19 @@ namespace raven
   namespace json = nlohmann;
 
   //! Keywords
-  static inline constexpr const char *request_keyword = "REQUEST_NAME";
-  static inline constexpr const char *request_state_keyword = "REQUEST_STATE";
+  inline constexpr const char request_keyword[] = "REQUEST_NAME";
+  inline constexpr const char request_state_keyword[] = "REQUEST_STATE";
 
   //! Protocol Constants
-  static inline constexpr const char *config_name_keyword = "CONFIG_NAME";
-  static inline constexpr const char *config_key_keyword = "CONFIG_KEY";
-  static inline constexpr const char *config_read_only_key_keyword = "READONLY_CONFIG_KEY";
-  static inline constexpr const char *config_id = "CONFIG_ID";
-  static inline constexpr const char *config_include_src = "SRC";
-  static inline constexpr const char *config_include_dst = "DST";
-  static inline constexpr const char *setting_name = "SETTING_NAME";
-  static inline constexpr const char *setting_value = "SETTING_VALUE";
-  static inline constexpr const char *alias_name = "ALIAS_NAME";
+  inline constexpr const char config_name_keyword[] = "CONFIG_NAME";
+  inline constexpr const char config_key_keyword[] = "CONFIG_KEY";
+  inline constexpr const char config_read_only_key_keyword[] = "READONLY_CONFIG_KEY";
+  inline constexpr const char config_id[] = "CONFIG_ID";
+  inline constexpr const char config_include_src[] = "SRC";
+  inline constexpr const char config_include_dst[] = "DST";
+  inline constexpr const char setting_name[] = "SETTING_NAME";
+  inline constexpr const char setting_value[] = "SETTING_VALUE";
+  inline constexpr const char alias_name[] = "ALIAS_NAME";
 
   //! CONFIG_CREATE
   struct config_create
