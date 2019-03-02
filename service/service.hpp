@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <utility>
 #include <unordered_map>
 #include <iostream>
 #include <iomanip>
@@ -149,10 +150,25 @@ namespace raven
     }
 
     //! Helpers
-    void send_answer(json::json &&response_json_data, uvw::PipeHandle &sock) noexcept
+    void send_answer(json::json &response_json_data, uvw::PipeHandle &sock) noexcept
     {
         auto response_str = response_json_data.dump();
         sock.write(response_str.data(), static_cast<unsigned int>(response_str.size()));
+    }
+
+    template<typename ProtocolType>
+    void prepare_answer(uvw::PipeHandle &sock, const ProtocolType& answer) noexcept
+    {
+        json::json response_json_data;
+        to_json(response_json_data, answer);
+        send_answer(response_json_data, sock);
+    }
+
+    void prepare_answer(uvw::PipeHandle &sock) noexcept
+    {
+        json::json response_json_data;
+        response_json_data[request_state_keyword] = convert_request_state.at(request_state::success);
+        send_answer(response_json_data, sock);
     }
 
     template <typename Request>
@@ -172,9 +188,7 @@ namespace raven
 
         // TODO: Send config key create by SQL (arthur work)
         const config_create_answer answer{"Foo", "Foo", convert_request_state.at(request_state::success)};
-        json::json response_json_data;
-        to_json(response_json_data, answer);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock, answer);
     }
 
     void load_config(json::json &json_data, uvw::PipeHandle &sock)
@@ -191,19 +205,14 @@ namespace raven
 
         //! TODO: change after arthur work
         const config_load_answer answer{"Foo", 42, convert_request_state.at(request_state::success)};
-        json::json response_json_data;
-        to_json(response_json_data, answer);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock, answer);
     }
 
     void unload_config(json::json &json_data, uvw::PipeHandle &sock)
     {
         auto cfg = fill_request<config_unload>(json_data);
         std::cout << "cfg.id: " << cfg.id << std::endl;
-
-        json::json response_json_data;
-        response_json_data[request_state_keyword] = convert_request_state.at(request_state::success);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock);
     }
 
     void include_config(json::json &json_data, uvw::PipeHandle &sock)
@@ -212,10 +221,7 @@ namespace raven
         std::cout << "cfg.id: " << cfg.id << std::endl;
         std::cout << "cfg.src: " << cfg.src << std::endl;
         std::cout << "cfg.dst: " << cfg.dst << std::endl;
-
-        json::json response_json_data;
-        response_json_data[request_state_keyword] = convert_request_state.at(request_state::success);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock);
     }
 
     void update_setting(json::json &json_data, uvw::PipeHandle &sock)
@@ -224,10 +230,7 @@ namespace raven
         std::cout << "cfg.id: " << cfg.id << std::endl;
         std::cout << "cfg.setting_name: " << cfg.setting_name << std::endl;
         std::cout << "cfg.setting_value: " << cfg.setting_value << std::endl;
-
-        json::json response_json_data;
-        response_json_data[request_state_keyword] = convert_request_state.at(request_state::success);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock);
     }
 
     void remove_setting(json::json &json_data, uvw::PipeHandle &sock)
@@ -235,10 +238,7 @@ namespace raven
         auto cfg = fill_request<setting_remove>(json_data);
         std::cout << "cfg.id: " << cfg.id << std::endl;
         std::cout << "cfg.setting_name: " << cfg.setting_name << std::endl;
-
-        json::json response_json_data;
-        response_json_data[request_state_keyword] = convert_request_state.at(request_state::success);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock);
     }
 
     void get_setting(json::json &json_data, uvw::PipeHandle &sock)
@@ -251,9 +251,7 @@ namespace raven
 
         //! TODO: change after arthur work
         const setting_get_answer answer{"FooBar", convert_request_state.at(request_state::success)};
-        json::json response_json_data;
-        to_json(response_json_data, answer);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock, answer);
     }
 
     void set_alias(json::json &json_data, uvw::PipeHandle &sock)
@@ -262,10 +260,7 @@ namespace raven
         std::cout << "cfg.id: " << cfg.id << std::endl;
         std::cout << "cfg.setting_name: " << cfg.setting_name << std::endl;
         std::cout << "cfg.alias_name: " << cfg.alias_name << std::endl;
-
-        json::json response_json_data;
-        response_json_data[request_state_keyword] = convert_request_state.at(request_state::success);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock);
     }
 
     void unset_alias(json::json &json_data, uvw::PipeHandle &sock)
@@ -273,10 +268,7 @@ namespace raven
         auto cfg = fill_request<alias_unset>(json_data);
         std::cout << "cfg.id: " << cfg.id << std::endl;
         std::cout << "cfg.alias_name: " << cfg.alias_name << std::endl;
-
-        json::json response_json_data;
-        response_json_data[request_state_keyword] = convert_request_state.at(request_state::success);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock);
     }
 
     void subscribe_setting(json::json &json_data, uvw::PipeHandle &sock)
@@ -289,10 +281,7 @@ namespace raven
         if (cfg.alias_name) {
             std::cout << "cfg.alias_name: " << cfg.alias_name.value() << std::endl;
         }
-
-        json::json response_json_data;
-        response_json_data[request_state_keyword] = convert_request_state.at(request_state::success);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock);
     }
 
     void unsubscribe_setting(json::json &json_data, uvw::PipeHandle &sock)
@@ -305,10 +294,7 @@ namespace raven
         if (cfg.alias_name) {
             std::cout << "cfg.alias_name: " << cfg.alias_name.value() << std::endl;
         }
-
-        json::json response_json_data;
-        response_json_data[request_state_keyword] = convert_request_state.at(request_state::success);
-        send_answer(std::move(response_json_data), sock);
+        prepare_answer(sock);
     }
 
     std::shared_ptr<uvw::Loop> uv_loop_{uvw::Loop::getDefault()};
