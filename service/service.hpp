@@ -20,7 +20,7 @@ namespace raven
     {
         server_->on<uvw::ErrorEvent>([this](auto const &error_event, auto &) {
             std::cerr << error_event.what() << std::endl;
-            this->is_initialized = false;
+            this->is_error_occured = true;
         });
 
         server_->on<uvw::ListenEvent>([this](uvw::ListenEvent const &, uvw::PipeHandle &handle) {
@@ -109,14 +109,11 @@ namespace raven
         });
     }
 
-    bool run() noexcept
+    void run() noexcept
     {
         clean_socket();
-        if (!this->is_initialized) return this->is_initialized;
         create_socket();
-        if (!this->is_initialized) return this->is_initialized;
         run_loop();
-        return true;
     }
 
   private:
@@ -141,9 +138,9 @@ namespace raven
         std::string socket = (std::filesystem::temp_directory_path() / "raven-os_service_libconfig.sock").string();
         std::cout << "binding to socket: " << socket << std::endl;
         server_->bind(socket);
-        if (!this->is_initialized) return this->is_initialized;
+        if (this->is_error_occured) return this->is_error_occured;
         server_->listen();
-        return this->is_initialized;
+        return this->is_error_occured;
     }
 
     //! Helpers
@@ -279,7 +276,7 @@ namespace raven
 
     std::shared_ptr<uvw::Loop> uv_loop_{uvw::Loop::getDefault()};
     std::shared_ptr<uvw::PipeHandle> server_{uv_loop_->resource<uvw::PipeHandle>()};
-    bool is_initialized{true};
+    bool is_error_occured{false};
 
 #ifdef DOCTEST_LIBRARY_INCLUDED
     TEST_CASE_CLASS ("test create socket")
@@ -288,8 +285,8 @@ namespace raven
             std::filesystem::remove(std::filesystem::temp_directory_path() / "raven-os_service_libconfig.sock");
         }
         service service_;
-        CHECK(service_.create_socket());
         CHECK_FALSE(service_.create_socket());
+        CHECK(service_.create_socket());
         CHECK(service_.clean_socket());
     }
 
@@ -297,7 +294,7 @@ namespace raven
     {
         service service_;
         CHECK_FALSE(service_.clean_socket());
-        CHECK(service_.create_socket());
+        CHECK_FALSE(service_.create_socket());
         CHECK(service_.clean_socket());
     }
 
