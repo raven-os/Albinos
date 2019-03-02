@@ -39,6 +39,7 @@ namespace raven
 
   //! Keywords
   static inline constexpr const char *request_keyword = "REQUEST_NAME";
+  static inline constexpr const char *request_state_keyword = "REQUEST_STATE";
 
   //! Protocol Constants
   static inline constexpr const char *config_name_keyword = "CONFIG_NAME";
@@ -72,9 +73,9 @@ namespace raven
 
   void to_json(raven::json::json &json_data, const config_create_answer &cfg)
   {
-      json_data = {{"CONFIG_KEY", cfg.config_key},
+      json_data = {{"CONFIG_KEY",          cfg.config_key},
                    {"READONLY_CONFIG_KEY", cfg.readonly_config_key},
-                   {"REQUEST_STATE", convert_request_state.at(request_state::success)}};
+                   {"REQUEST_STATE",       cfg.request_state}};
   }
 
   //! CONFIG_LOAD
@@ -99,12 +100,14 @@ namespace raven
   {
     std::string config_name;
     std::uint32_t config_id;
+    std::string request_state;
   };
 
   void to_json(raven::json::json &json_data, const config_load_answer &cfg)
   {
-      json_data = {{"CONFIG_NAME", cfg.config_name},
-                   {"CONFIG_ID",   cfg.config_id}};
+      json_data = {{"CONFIG_NAME",   cfg.config_name},
+                   {"CONFIG_ID",     cfg.config_id},
+                   {"REQUEST_STATE", cfg.request_state}};
   }
 
   //! CONFIG_UNLOAD
@@ -178,11 +181,13 @@ namespace raven
   struct setting_get_answer
   {
     std::string setting_value;
+    std::string request_state;
   };
 
   void to_json(raven::json::json &json_data, const setting_get_answer &cfg)
   {
-      json_data = {{"SETTING_VALUE", cfg.setting_value}};
+      json_data = {{"SETTING_VALUE", cfg.setting_value},
+                   {"REQUEST_STATE", cfg.request_state}};
   }
 
   //! ALIAS_SET
