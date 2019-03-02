@@ -26,7 +26,13 @@ namespace raven
         server_->on<uvw::ListenEvent>([this](uvw::ListenEvent const &, uvw::PipeHandle &handle) {
             std::shared_ptr<uvw::PipeHandle> socket = handle.loop().resource<uvw::PipeHandle>();
             socket->on<uvw::CloseEvent>(
-                [](uvw::CloseEvent const &, uvw::PipeHandle &) { std::cout << "socket closed." << std::endl; });
+                [this](uvw::CloseEvent const &, uvw::PipeHandle &handle) {
+                    std::cout << "socket closed." << std::endl;
+                    handle.close();
+#ifdef DOCTEST_LIBRARY_INCLUDED
+                    this->uv_loop_->stop();
+#endif
+                });
 
             socket->on<uvw::EndEvent>([](const uvw::EndEvent &, uvw::PipeHandle &sock) {
                 std::cout << "end event received" << std::endl;
@@ -124,10 +130,9 @@ namespace raven
 
     bool clean_socket() noexcept
     {
-        auto socket_path = std::filesystem::temp_directory_path() / "raven-os_service_libconfig.sock";
-        if (std::filesystem::exists(socket_path)) {
-            std::cout << "socket: " << socket_path.string() << " already exist, removing" << std::endl;
-            std::filesystem::remove(socket_path);
+        if (std::filesystem::exists(socket_path_)) {
+            std::cout << "socket: " << socket_path_.string() << " already exist, removing" << std::endl;
+            std::filesystem::remove(socket_path_);
             return true;
         }
         return false;
@@ -135,7 +140,7 @@ namespace raven
 
     bool create_socket() noexcept
     {
-        std::string socket = (std::filesystem::temp_directory_path() / "raven-os_service_libconfig.sock").string();
+        std::string socket = socket_path_.string();
         std::cout << "binding to socket: " << socket << std::endl;
         server_->bind(socket);
         if (this->is_error_occured) return this->is_error_occured;
@@ -276,15 +281,16 @@ namespace raven
 
     std::shared_ptr<uvw::Loop> uv_loop_{uvw::Loop::getDefault()};
     std::shared_ptr<uvw::PipeHandle> server_{uv_loop_->resource<uvw::PipeHandle>()};
+    std::filesystem::path socket_path_{(std::filesystem::temp_directory_path() / "raven-os_service_libconfig.sock")};
     bool is_error_occured{false};
 
 #ifdef DOCTEST_LIBRARY_INCLUDED
     TEST_CASE_CLASS ("test create socket")
     {
-        if (std::filesystem::exists(std::filesystem::temp_directory_path() / "raven-os_service_libconfig.sock")) {
-            std::filesystem::remove(std::filesystem::temp_directory_path() / "raven-os_service_libconfig.sock");
-        }
         service service_;
+        if (std::filesystem::exists(service_.socket_path_)) {
+            std::filesystem::remove(service_.socket_path_);
+        }
         CHECK_FALSE(service_.create_socket());
         CHECK(service_.create_socket());
         CHECK(service_.clean_socket());
@@ -311,6 +317,32 @@ namespace raven
                                         {"CONFIG_KEY":"Foo","READONLY_CONFIG_KEY":"Foo","REQUEST_STATE":"SUCCESS"}
                                      )"_json;
         CHECK(service_.create_config(data) == data_expected);
+    }
+
+    TEST_CASE_CLASS ("check fake client")
+    {
+        service service_;
+        CHECK_FALSE(service_.create_socket());
+        auto loop = uvw::Loop::getDefault();
+        auto client = loop->resource<uvw::PipeHandle>();
+        client->once<uvw::ConnectEvent>([](const uvw::ConnectEvent &, uvw::PipeHandle &handle) {
+            CHECK(handle.writable());
+            CHECK(handle.readable());
+
+            auto dataTryWrite = std::unique_ptr<char[]>(new char[1]{'a'});
+            handle.tryWrite(std::move(dataTryWrite), 1);
+            auto dataWrite = std::unique_ptr<char[]>(new char[2]{'b', 'c'});
+            handle.write(std::move(dataWrite), 2);
+        });
+
+        client->once<uvw::WriteEvent>([](const uvw::WriteEvent &, uvw::PipeHandle &handle) {
+            handle.close();
+        });
+
+        client->connect(service_.socket_path_.string());
+
+        CHECK(service_.clean_socket());
+        loop->run();
     }
 
 #endif
