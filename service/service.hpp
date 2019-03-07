@@ -114,7 +114,7 @@ namespace raven
             });
 
             handle.accept(*socket);
-            config_id_registry_[socket->fileno()] = {config_id_st{0}};
+            config_id_registry_[socket->fileno()] = {config_id_st{}};
             socket->read();
         });
     }
