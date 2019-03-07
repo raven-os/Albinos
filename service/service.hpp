@@ -321,18 +321,18 @@ namespace raven
         if (std::filesystem::exists(service_.socket_path_)) {
             std::filesystem::remove(service_.socket_path_);
         }
-            CHECK_FALSE(service_.create_socket());
-            CHECK(service_.create_socket());
-            CHECK(service_.clean_socket());
+        CHECK_FALSE(service_.create_socket());
+        CHECK(service_.create_socket());
+        CHECK(service_.clean_socket());
         std::filesystem::remove(std::filesystem::current_path() / "albinos_service_test_internal.db");
     }
 
     TEST_CASE_CLASS ("test clean socket")
     {
         service service_{std::filesystem::current_path() / "albinos_service_test_internal.db"};
-            CHECK_FALSE(service_.clean_socket());
-            CHECK_FALSE(service_.create_socket());
-            CHECK(service_.clean_socket());
+        CHECK_FALSE(service_.clean_socket());
+        CHECK_FALSE(service_.create_socket());
+        CHECK(service_.clean_socket());
         std::filesystem::remove(std::filesystem::current_path() / "albinos_service_test_internal.db");
     }
 
@@ -340,12 +340,12 @@ namespace raven
                                                  bool consider_only_state = false) noexcept
     {
         service service_{std::filesystem::current_path() / "albinos_service_test_internal.db"};
-            CHECK_FALSE(service_.create_socket());
+        CHECK_FALSE(service_.create_socket());
         auto loop = uvw::Loop::getDefault();
         auto client = loop->resource<uvw::PipeHandle>();
         client->once<uvw::ConnectEvent>([&request](const uvw::ConnectEvent &, uvw::PipeHandle &handle) {
-                CHECK(handle.writable());
-                CHECK(handle.readable());
+            CHECK(handle.writable());
+            CHECK(handle.readable());
             auto request_str = request.dump();
             handle.write(request_str.data(), static_cast<unsigned int>(request_str.size()));
             handle.read();
@@ -358,10 +358,9 @@ namespace raven
                 auto json_data_str = json_data.dump();
                 std::cout << "json answer:\n" << json_data_str << std::endl;
                 if (!consider_only_state) {
-                        CHECK(json_data == expected_answer);
+                    CHECK(json_data == expected_answer);
                 } else {
-                        CHECK(json_data.at("REQUEST_STATE").get<std::string>() ==
-                              expected_answer.at("REQUEST_STATE").get<std::string>());
+                    CHECK(json_data.at("REQUEST_STATE").get<std::string>() == expected_answer.at("REQUEST_STATE").get<std::string>());
                 }
                 sock.close();
             });
@@ -369,7 +368,7 @@ namespace raven
         client->connect(service_.socket_path_.string());
 
         loop->run();
-            CHECK(service_.clean_socket());
+        CHECK(service_.clean_socket());
         std::filesystem::remove(std::filesystem::current_path() / "albinos_service_test_internal.db");
     }
 
