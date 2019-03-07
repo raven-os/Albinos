@@ -114,7 +114,6 @@ namespace raven
             });
 
             handle.accept(*socket);
-            std::cout << "sock after accept :" << socket->fileno() << std::endl;
             config_id_registry_[socket->fileno()] = {config_id_st{0}};
             socket->read();
         });
