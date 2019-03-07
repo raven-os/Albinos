@@ -114,8 +114,7 @@ namespace raven
             });
 
             handle.accept(*socket);
-            // Hack: default initialisation at 0 for each new connection, filled during creation of a configuration.
-            config_id_registry_[socket->fileno()] = {config_id_st{}};
+            config_id_registry_[socket->fileno()] = decltype(config_id_registry_)::mapped_type();
             socket->read();
         });
     }
