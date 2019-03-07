@@ -87,12 +87,12 @@ namespace raven
     TEST_CASE_CLASS ("config_create db")
     {
         config_db db{std::filesystem::current_path() / "albinos_service_test.db"};
-            SUBCASE("normal case") {
+        SUBCASE("normal case") {
             json::json config_create = R"({"REQUEST_NAME": "CONFIG_CREATE","CONFIG_NAME": "ma_config"})"_json;
-                CHECK_EQ(db.config_create(config_create).config_id.value(), 1u);
+            CHECK_EQ(db.config_create(config_create).config_id.value(), 1u);
 
             config_create = R"({"REQUEST_NAME": "CONFIG_CREATE","CONFIG_NAME": "ma_config_de_ouf"})"_json;
-                CHECK_EQ(db.config_create(config_create).config_id.value(), 2u);
+            CHECK_EQ(db.config_create(config_create).config_id.value(), 2u);
         }
         std::filesystem::remove(std::filesystem::current_path() / "albinos_service_test.db");
     }
