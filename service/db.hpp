@@ -56,29 +56,42 @@ namespace raven
         using namespace std::string_literals;
         config_key_st config_key;
         config_key_st readonly_config_key;
-        try {
-            json::json data_to_bind;
-            data_to_bind["CONFIG_NAME"] = config_create_data["CONFIG_NAME"];
-            data_to_bind["SETTINGS"] = {};
-            std::cout << data_to_bind.dump() << std::endl;
-            auto data_to_bind_str = data_to_bind.dump();
-            database_ << "insert into config (config_text, config_key, readonly_config_key) VALUES (?, ?, ?);"
-                      << data_to_bind_str
-                      << (random_string() + std::to_string(std::hash<std::string>()(config_create_data["CONFIG_NAME"])))
-                      << (random_string() + std::to_string(std::hash<std::string>()(config_create_data["CONFIG_NAME"])));
+        config_id_st request_state_value{static_cast<int>(request_state::db_error)};
+        for (nb_tries_ = 0; nb_tries_ < maximum_retries_; ++nb_tries_) {
+            try {
+                json::json data_to_bind;
+                data_to_bind["CONFIG_NAME"] = config_create_data["CONFIG_NAME"];
+                data_to_bind["SETTINGS"] = {};
+                std::cout << data_to_bind.dump() << std::endl;
+                auto data_to_bind_str = data_to_bind.dump();
+                database_ << "insert into config (config_text, config_key, readonly_config_key) VALUES (?, ?, ?);"
+                          << data_to_bind_str
+                          << (random_string() +
+                              std::to_string(std::hash<std::string>()(config_create_data["CONFIG_NAME"])))
+                          << (random_string() +
+                              std::to_string(std::hash<std::string>()(config_create_data["CONFIG_NAME"])));
 
-            database_ << "select config_key,readonly_config_key from config where id = ? ;"
-                      << database_.last_insert_rowid()
-                      >> [&](std::string config_key_, std::string readonly_config_key_) {
-                          config_key = config_key_st{config_key_};
-                          readonly_config_key = config_key_st{readonly_config_key_};
-                      };
+                database_ << "select config_key,readonly_config_key from config where id = ? ;"
+                          << database_.last_insert_rowid()
+                          >> [&](std::string config_key_, std::string readonly_config_key_) {
+                              config_key = config_key_st{config_key_};
+                              readonly_config_key = config_key_st{readonly_config_key_};
+                          };
+                //success;
+                request_state_value = config_id_st{static_cast<int>(database_.last_insert_rowid())};
+                break;
+            }
+            catch (const sqlite::errors::constraint_unique &error) {
+                std::cerr << error.what() << std::endl;
+                /* error constraint violated, we retry with a new random_string() */
+            }
+            catch (const std::exception &error) {
+                std::cerr << "error: " << error.what() << std::endl;
+                /* this error seem's fatal, we break */
+                break;
+            }
         }
-        catch (const std::exception &error) {
-            std::cerr << "error: " << error.what() << std::endl;
-            return {config_key, readonly_config_key, config_id_st{static_cast<int>(request_state::db_error)}};
-        }
-        return {config_key, readonly_config_key, config_id_st{static_cast<int>(database_.last_insert_rowid())}};
+        return {config_key, readonly_config_key, request_state_value};
     }
 
   private:
@@ -94,6 +107,15 @@ namespace raven
             config_create = R"({"REQUEST_NAME": "CONFIG_CREATE","CONFIG_NAME": "ma_config_de_ouf"})"_json;
             CHECK_EQ(db.config_create(config_create).config_id.value(), 2u);
         }
+        SUBCASE("unique constraints violation") {
+            json::json config_create = R"({"REQUEST_NAME": "CONFIG_CREATE","CONFIG_NAME": "ma_config_foo"})"_json;
+            for (int i = 0; i < 100; ++i) {
+                WARN_NE(db.config_create(config_create).config_id.value(), static_cast<int>(request_state::db_error));
+                if (db.config_create(config_create).config_id.value() == static_cast<int>(request_state::db_error)) {
+                    break;
+                }
+            }
+        }
         std::filesystem::remove(std::filesystem::current_path() / "albinos_service_test.db");
     }
 
@@ -101,5 +123,7 @@ namespace raven
 
   private:
     sqlite::database database_;
+    unsigned int nb_tries_{0};
+    unsigned int maximum_retries_{4};
   };
 }
