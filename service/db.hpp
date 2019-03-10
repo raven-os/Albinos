@@ -117,7 +117,8 @@ namespace raven
             };
             int nb_count = 0;
             database_ << "SELECT count(*) FROM config;" >> nb_count;
-            if (!nb_count) throw sqlite::errors::empty(0, "SELECT count(*) FROM config;");
+            if (!nb_count)
+                throw sqlite::errors::empty(0, "SELECT count(*) FROM config;");
             if (config_load_data.config_key) {
                 throw_misuse_if_count_return_zero_for_this_statement(select_count_key_statement,
                                                                      config_load_data.config_key.value().value());
