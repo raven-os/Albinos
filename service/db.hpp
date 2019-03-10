@@ -106,14 +106,6 @@ namespace raven
         return {config_key, readonly_config_key, request_state_value};
     }
 
-    template <typename Value>
-    void scream_error_if_non_existent(const db_statement_st &statement, Value value_statement)
-    {
-        int nb_count = 0;
-        database_ << statement.value() << value_statement >> nb_count;
-        if (!nb_count) throw sqlite::errors::misuse(0, statement.value());
-    }
-
     config_load_answer config_load(const config_load &config_load_data) noexcept
     {
         config_load_answer db_answer{"", config_id_st{}, convert_request_state.at(request_state::success)};
@@ -127,12 +119,13 @@ namespace raven
             database_ << "SELECT count(*) FROM config;" >> nb_count;
             if (!nb_count) throw sqlite::errors::empty(0, "SELECT count(*) FROM config;");
             if (config_load_data.config_key) {
-                scream_error_if_non_existent(select_count_key_statement, config_load_data.config_key.value().value());
+                throw_misuse_if_count_return_zero_for_this_statement(select_count_key_statement,
+                                                                     config_load_data.config_key.value().value());
                 database_ << select_config_from_key_statement.value() << config_load_data.config_key.value().value()
                           >> functor_receive_data;
             } else if (config_load_data.config_read_only_key) {
-                scream_error_if_non_existent(select_count_readonly_key_statement,
-                                             config_load_data.config_read_only_key.value().value());
+                throw_misuse_if_count_return_zero_for_this_statement(select_count_readonly_key_statement,
+                                                                     config_load_data.config_read_only_key.value().value());
                 database_ << select_config_from_readonly_key_statement.value()
                           << config_load_data.config_read_only_key.value().value() >> functor_receive_data;
             }
@@ -149,6 +142,14 @@ namespace raven
     }
 
   private:
+    template <typename Value>
+    void throw_misuse_if_count_return_zero_for_this_statement(const db_statement_st &statement, Value value_statement)
+    {
+        int nb_count = 0;
+        database_ << statement.value() << value_statement >> nb_count;
+        if (!nb_count)
+            throw sqlite::errors::misuse(0, statement.value());
+    }
 
 #ifdef DOCTEST_LIBRARY_INCLUDED
     TEST_CASE_CLASS ("config_create db")

@@ -67,7 +67,9 @@ namespace raven
     }
 
     ~service() noexcept
-    { std::cout << "destroy service" << std::endl; }
+    {
+        std::cout << "destroy service" << std::endl;
+    }
 
     void run() noexcept
     {
