@@ -355,8 +355,8 @@ namespace raven
                 if (!consider_only_state) {
                     CHECK(json_data == expected_answer);
                 } else {
-                    CHECK(json_data.at("REQUEST_STATE").get<std::__cxx11::string>() ==
-                        expected_answer.at("REQUEST_STATE").get<std::__cxx11::string>());
+                    CHECK(json_data.at("REQUEST_STATE").get<std::string>() ==
+                        expected_answer.at("REQUEST_STATE").get<std::string>());
                 }
                 sock.close();
             });
