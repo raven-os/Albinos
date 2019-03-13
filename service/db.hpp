@@ -252,7 +252,7 @@ namespace raven
             std::filesystem::remove(std::filesystem::current_path() / "albinos_service_test.db");
         }
 
-        SUBCASE("regular update multiple settings") {
+        SUBCASE("normal update multiple settings") {
             config_db db{std::filesystem::current_path() / "albinos_service_test.db"};
             json::json config_create = R"({"REQUEST_NAME": "CONFIG_CREATE","CONFIG_NAME": "ma_config"})"_json;
             auto config_create_answer = db.config_create(config_create);
