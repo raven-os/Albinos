@@ -1,9 +1,25 @@
 import std.stdio;
 import std.string;
+import std.socket : UnixAddress, Socket, SocketType, AddressFamily;
+import std.uni : isWhite;
+
+///
+class Client
+{
+	///
+	this(string socket_path)
+	{
+		this.address_= new UnixAddress(socket_path);
+		this.socket_ = new Socket(AddressFamily.UNIX, SocketType.STREAM);
+		socket_.connect(this.address_);
+	}
+	
+	private UnixAddress address_;
+	private Socket socket_;
+}
 
 void main()
 {
-	import std.uni : isWhite;
 	write("> ");
 	string line;
 	while ((line = stdin.readln().stripRight("\n")) !is null) {	
