@@ -51,14 +51,13 @@ class CLI
 			//! Command with argument
 			if (splited_line.length >= 2)
 			{
-				auto args = splited_line[1 .. splited_line.length];
-				auto cmd = splited_line[0];
+				const auto args = splited_line[1 .. splited_line.length];
+				const auto cmd = splited_line[0];
 				writeln("cmd -> [", cmd, "] args -> ", args);
 				switch (cmd)
 				{
 				default:
-					immutable auto result = line.dup.executeShell;
-					result.output.write;
+					line.dup.executeShell.output.write;
 					break;
 				}
 			}
@@ -68,8 +67,7 @@ class CLI
 				switch (line)
 				{
 				default:
-					immutable auto result = line.dup.executeShell;
-					result.output.write;
+					line.dup.executeShell.output.write;
 					break;
 				}
 			}
