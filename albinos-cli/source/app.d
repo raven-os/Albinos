@@ -48,28 +48,18 @@ class CLI
 				break;
 			}
 			auto splited_line = line.split!isWhite;
-			//! Command with argument
+			const auto cmd = splited_line[0];
+			string[] args = null;
 			if (splited_line.length >= 2)
 			{
-				const auto args = splited_line[1 .. splited_line.length];
-				const auto cmd = splited_line[0];
+				args = splited_line[1 .. splited_line.length];
 				writeln("cmd -> [", cmd, "] args -> ", args);
-				switch (cmd)
-				{
-				default:
-					line.dup.executeShell.output.write;
-					break;
-				}
 			}
-			//! Command without argument
-			else
+			switch (cmd)
 			{
-				switch (line)
-				{
-				default:
-					line.dup.executeShell.output.write;
-					break;
-				}
+			default:
+				line.dup.executeShell.output.write;
+				break;
 			}
 			write("> ");
 		}
