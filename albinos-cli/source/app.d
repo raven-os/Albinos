@@ -2,6 +2,7 @@ import std.stdio;
 import std.string;
 import std.socket : UnixAddress, Socket, SocketType, AddressFamily, SocketOSException;
 import std.uni : isWhite;
+import std.process : executeShell;
 
 ///
 class Client
@@ -40,19 +41,37 @@ class CLI
 			return;
 		write("> ");
 		string line;
-		while (((line = stdin.readln().stripRight("\n")) !is null))
+		while (((line = stdin.readln().strip("\n \t")) !is null))
 		{
 			if (line == "exit")
 			{
 				break;
 			}
 			auto splited_line = line.split!isWhite;
+			//! Command with argument
 			if (splited_line.length >= 2)
 			{
 				auto args = splited_line[1 .. splited_line.length];
 				auto cmd = splited_line[0];
-				writeln("cmd -> [", cmd, "]");
-				writeln("args -> ", args);
+				writeln("cmd -> [", cmd, "] args -> ", args);
+				switch (cmd)
+				{
+				default:
+					immutable auto result = line.dup.executeShell;
+					result.output.write;
+					break;
+				}
+			}
+			//! Command without argument
+			else
+			{
+				switch (line)
+				{
+				default:
+					immutable auto result = line.dup.executeShell;
+					result.output.write;
+					break;
+				}
 			}
 			write("> ");
 		}
