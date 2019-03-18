@@ -11,6 +11,7 @@ import std.file;
 import asdf;
 import protocol.protocol_type;
 import client.client;
+import cli.deserializer;
 
 class CLI
 {
@@ -25,6 +26,21 @@ class CLI
             writeln(stderr, e.msg);
             is_running_ = false;
         }
+    }
+
+    private void load_config(string[] args) 
+    in
+    {
+        assert(args !is null, "args cannot be null");
+        assert(args.length == 2, "need 1 arguments");
+    }
+    body
+    {
+        string config_key;
+        getopt(args, "key", &config_key);
+        auto cfg = deserialize_to!config_load("../API_doc/json_recipes/config_load.json");
+        cfg.config_key = config_key;
+        writeln(cfg);
     }
 
     private config_create_answer create_config(string[] args)
@@ -43,13 +59,12 @@ class CLI
     {
         string config_name;
         getopt(args, "name", &config_name);
-        auto cfg = (cast(const char[])(std.file.read("../API_doc/json_recipes/config_create.json")))
-            .deserialize!config_create;
+        auto cfg = deserialize_to!config_create("../API_doc/json_recipes/config_create.json");
         cfg.config_name = config_name.strip("\"");
         client_.socket.send(cfg.serializeToJson);
         auto answer = new ubyte[256];
         client_.socket.receive(answer);
-        client_.socket.getErrorText.writeln;
+        (cast(string)answer).writeln;
         return (cast(string) answer).deserialize!config_create_answer;
     }
 
@@ -86,6 +101,9 @@ class CLI
                 {
                 case "create_config":
                     this.create_config(splited_line);
+                    break;
+                case "load_config":
+                    this.load_config(splited_line);
                     break;
                 default:
                     line.dup.executeShell.output.write;
