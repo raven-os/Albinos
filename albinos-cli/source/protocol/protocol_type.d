@@ -2,12 +2,9 @@ module protocol.protocol_type;
 
 import asdf;
 
-///
 struct config_create
 {
-    ///
     @serializationKeys("REQUEST_NAME") string request_name;
-    ///
     @serializationKeys("CONFIG_NAME") string config_name;
 }
 
