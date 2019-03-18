@@ -1,12 +1,13 @@
+import core.exception : AssertError;
 import std.stdio;
 import std.string;
 import std.getopt;
-import core.exception : AssertError;
-import std.socket : UnixAddress, Socket, SocketType, AddressFamily, SocketOSException;
+import std.socket;
 import std.uni : isWhite;
 import std.process : executeShell;
 import std.file;
 import asdf;
+import protocol.protocol_type;
 
 ///
 class Client
@@ -44,21 +45,23 @@ class CLI
 		}
 	}
 
-	private void create_config(string[] args)
+	private config_create_answer create_config(string[] args)
 	in
 	{
 		assert(args !is null, "args cannot be null");
 		assert(args.length == 2, "need 1 arguments");
 	}
+	out(r) 
+	{
+		assert(r.state == "SUCCESS", "create_config should success");
+		assert(!r.config_key.empty, "config_key should not be empty");
+		assert(!r.readonly_config_key.empty, "readonly_config_key should not be empty");
+	}
 	body
 	{
 		string config_name;
 		getopt(args, "name", &config_name);
-		struct config_create
-		{
-			@serializationKeys("REQUEST_NAME") string request_name;
-			@serializationKeys("CONFIG_NAME") string config_name;
-		}
+		
 
 		auto cfg = (cast(const char[])(std.file.read("../API_doc/json_recipes/config_create.json")))
 			.deserialize!config_create;
@@ -67,7 +70,7 @@ class CLI
 		auto answer = new ubyte[256];
 		client_.socket.receive(answer);
 		client_.socket.getErrorText.writeln;
-		writeln(cast(string)answer);
+		return (cast(string)answer).deserialize!config_create_answer;
 	}
 
 	///
