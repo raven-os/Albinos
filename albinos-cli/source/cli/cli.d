@@ -28,13 +28,9 @@ class CLI
         }
     }
 
-    private void load_config(string[] args) 
-    in
-    {
-        assert(args !is null, "args cannot be null");
-        assert(args.length == 2, "need 1 arguments");
-    }
-    body
+    private void load_config(string[] args)
+    in(args !is null, "args cannot be null")
+    in(args.length == 2, "need 1 arguments")
     {
         string config_key;
         getopt(args, "key", &config_key);
@@ -44,18 +40,11 @@ class CLI
     }
 
     private config_create_answer create_config(string[] args)
-    in
-    {
-        assert(args !is null, "args cannot be null");
-        assert(args.length == 2, "need 1 arguments");
-    }
-    out (r)
-    {
-        assert(r.state == "SUCCESS", "create_config should success");
-        assert(!r.config_key.empty, "config_key should not be empty");
-        assert(!r.readonly_config_key.empty, "readonly_config_key should not be empty");
-    }
-    body
+    in(args !is null, "args cannot be null")
+    in(args.length == 2, "need 1 arguments")
+    out(r; r.state == "SUCCESS", "create_config should success")
+    out(r; !r.config_key.empty, "config_key should not be empty")
+    out(r; !r.readonly_config_key.empty, "readonly_config_key should not be empty")
     {
         string config_name;
         getopt(args, "name", &config_name);
@@ -64,7 +53,7 @@ class CLI
         client_.socket.send(cfg.serializeToJson);
         auto answer = new ubyte[256];
         client_.socket.receive(answer);
-        (cast(string)answer).writeln;
+        (cast(string) answer).writeln;
         return (cast(string) answer).deserialize!config_create_answer;
     }
 
@@ -78,6 +67,9 @@ class CLI
         assert(cli.create_config(["create_config", "--name=\"titi\""])
                 .state == "SUCCESS", "should be success");
         assert(collectException(cli.create_config(["create_config", "--name="])));
+        assert(collectException!AssertError(cli.create_config(["create_config"])));
+        assert(collectException!AssertError(cli.create_config(["create_config", "--name", "lol"])));
+        assert(collectException!AssertError(cli.create_config(null)));
     }
 
     ///
