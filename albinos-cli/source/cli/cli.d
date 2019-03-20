@@ -55,7 +55,7 @@ class CLI
     {
         auto cli = new CLI("/tmp/raven-os_service_albinos.sock");
         auto create_answer = cli.create_config(["create_config", "--name=toto"]);
-        assert(create_answer.state == "SUCCESS", "should be success");
+        assert(create_answer.state == "SUCCESS", "should be SUCCESS");
         auto load_answer = cli.load_config(["load_config", "--key=" ~ create_answer.config_key]);
         assert(load_answer.state == "SUCCESS", "should be SUCCESS");
         //TODO: add more tests
