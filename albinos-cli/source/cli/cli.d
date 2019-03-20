@@ -31,7 +31,7 @@ class CLI
     private config_load_answer load_config(string[] args)
     in(args !is null, "args cannot be null")
     in(args.length == 2, "need 1 arguments")
-    out(r; r.state == "SUCCESS", "load_config should success")
+    out(r; r.state == "SUCCESS", "load_config should succeed")
     out(r; !r.config_name.empty, "config_name should not be empty")
     out(r; r.config_id > 0, "config_id should be different than 0")
     {
