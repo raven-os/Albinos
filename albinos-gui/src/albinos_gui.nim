@@ -1,5 +1,6 @@
 import nigui
 
+##! Require for gtk3
 app.init()
 
 ##! Window configuration
