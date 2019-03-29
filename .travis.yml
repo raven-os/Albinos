@@ -13,7 +13,7 @@ matrix:
     #env:
     #  - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
 
-    # works on Precise and Trusty
+    
     - os: linux
       addons:
         apt:
