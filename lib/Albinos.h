@@ -136,7 +136,7 @@ namespace Albinos
     enum ReturnedValue destroyConfig(struct Config const*);
 
     ///
-    /// \brief get config from a read/write Key. Created struct must be released using "releaseConfig"
+    /// \brief get config from a read/write Key. The created struct must be released using "releaseConfig"
     /// \param 'key' the Key of the requested config
     /// \param 'returnedConfig' if the function succeeds, a pointer is written to a new 'struct Config'
     /// \return error code
