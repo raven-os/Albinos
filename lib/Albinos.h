@@ -121,7 +121,7 @@ namespace Albinos
     struct Config;
 
     ///
-    /// \brief Create a config with the given name. Created struct must be released using "releaseConfig"
+    /// \brief Create a config with the given name. The created struct must be released using "releaseConfig"
     /// \param 'configName' the new config's name
     /// \param 'returnedConfig' if the function succeeds, a pointer is written to a new 'struct Config'
     /// \return error code
