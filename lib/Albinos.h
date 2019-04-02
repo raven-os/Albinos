@@ -144,7 +144,7 @@ namespace Albinos
     enum ReturnedValue getConfig(struct Key key, struct Config **returnedConfig);
 
     ///
-    /// \brief get const config from a read only key. Created struct must be released using "releaseConfig"
+    /// \brief get const config from a read only key. The created struct must be released using "releaseConfig"
     /// \param 'key' the key of the requested config
     /// \param 'returnedConfig' if the function succeeds, a pointer is written to a new 'struct Config'
     /// \return error code
