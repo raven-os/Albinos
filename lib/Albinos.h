@@ -289,7 +289,7 @@ namespace Albinos
     void destroyAliasesArray(struct Alias *aliases, size_t size);
 
     ///
-    /// \brief inherit from another config. To cancel inclusion, use "uninclude"
+    /// \brief inherit from another config. To remove an included config, use "uninclude"
     /// \param the config to modify
     /// \param 'inheritFrom' the READ_ONLY key of the config to include
     /// \param 'position' the position in the list of dependencies, where 0 is the first to be included. Negative values can be used, and then position will be *size* decreased by value.
