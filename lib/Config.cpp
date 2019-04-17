@@ -180,41 +180,55 @@ Albinos::ReturnedValue Albinos::Config::getSettingValue(char const *settingName,
 }
 
 ///
-/// \todo implementation
+/// \todo handle error
 ///
 Albinos::ReturnedValue Albinos::Config::getSettingSize(char const *settingName, size_t *size) const
 {
-  (void)settingName;
-  (void)size;
+  json request;
+  request["REQUEST_NAME"] = "SETTING_GET";
+  request["CONFIG_ID"] = configId;
+  request["SETTING_NAME"] = settingName;
+  sendJson(request);
+  *size = lastRequestedValue.length();
   return SUCCESS;
 }
 
 ///
-/// \todo implementation
+/// \todo handle error
 ///
 Albinos::ReturnedValue Albinos::Config::setSetting(char const *name, char const *value)
 {
-  (void)name;
-  (void)value;
+  json request;
+  request["REQUEST_NAME"] = "SETTING_UPDATE";
+  request["CONFIG_ID"] = configId;
+  request["SETTINGS_TO_UPDATE"][name] = value;
+  sendJson(request);
   return SUCCESS;
 }
 
 ///
-/// \todo implementation
+/// \todo handle error
 ///
 Albinos::ReturnedValue Albinos::Config::setSettingAlias(char const *name, char const *aliasName)
 {
-  (void)name;
-  (void)aliasName;
+  json request;
+  request["REQUEST_NAME"] = "ALIAS_SET";
+  request["CONFIG_ID"] = configId;
+  request["SETTING_NAME"] = name;
+  request["ALIAS_NAME"] = aliasName;
+  sendJson(request);
   return SUCCESS;
 }
 
 ///
-/// \todo implementation
+/// \todo handle error
 ///
 Albinos::ReturnedValue Albinos::Config::unsetAlias(char const *aliasName)
 {
-  (void)aliasName;
+  json request;
+  request["REQUEST_NAME"] = "ALIAS_UNSET";
+  request["ALIAS_NAME"] = aliasName;
+  sendJson(request);
   return SUCCESS;
 }
 
@@ -249,6 +263,9 @@ Albinos::ReturnedValue Albinos::Config::subscribeToSetting(char const *settingNa
   return SUCCESS;
 }
 
+///
+/// \todo implementation
+///
 Albinos::ReturnedValue Albinos::Config::getDependencies(Config **deps, size_t *size) const
 {
   (void)deps;
@@ -256,6 +273,9 @@ Albinos::ReturnedValue Albinos::Config::getDependencies(Config **deps, size_t *s
   return SUCCESS;
 }
 
+///
+/// \todo implementation
+///
 Albinos::ReturnedValue Albinos::Config::getLocalSettings(Setting **settings, size_t *size) const
 {
   (void)settings;
@@ -263,12 +283,18 @@ Albinos::ReturnedValue Albinos::Config::getLocalSettings(Setting **settings, siz
   return SUCCESS;
 }
 
+///
+/// \todo implementation
+///
 Albinos::ReturnedValue Albinos::Config::getLocalSettingsNames(char ***names) const
 {
   (void)names;
   return SUCCESS;
 }
 
+///
+/// \todo implementation
+///
 Albinos::ReturnedValue Albinos::Config::getLocalAliases(Alias **aliases, size_t *size) const
 {
   (void)aliases;
@@ -276,6 +302,9 @@ Albinos::ReturnedValue Albinos::Config::getLocalAliases(Alias **aliases, size_t 
   return SUCCESS;
 }
 
+///
+/// \todo implementation
+///
 Albinos::ReturnedValue Albinos::Config::deleteConfig() const
 {
   return SUCCESS;
