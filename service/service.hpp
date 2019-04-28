@@ -16,8 +16,6 @@
 #include "protocol.hpp"
 #include "db.hpp"
 
-//#include <doctest.h>
-
 namespace raven
 {
   class service
