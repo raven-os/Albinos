@@ -352,6 +352,46 @@ namespace raven
         send_answer(sock, answer);
     }
 
+    void get_settings_name(json::json &json_data, uvw::PipeHandle &sock)
+    {
+        LOG_SCOPE_F(INFO, __PRETTY_FUNCTION__);
+        auto cfg = fill_request<config_get_settings_names>(json_data);
+        DLOG_F(INFO, "cfg.id: %lu", cfg.id.value());
+        if (!config_clients_registry_.at(sock.fileno()).has_loaded(raven::config_id_st{cfg.id})) {
+            send_answer(sock, request_state::unknown_id);
+            return ;
+        }
+        auto config_json_data = db_.get_config(config_clients_registry_.at(sock.fileno()).get_db_id_from(raven::config_id_st{cfg.id}));
+        if (db_.fail()) {
+            send_answer(sock, request_state::db_error);
+            return ;
+        }
+        json::json settings_name{json::json::array()};
+        for (auto &[key, value] : config_json_data[config_settings_field_keyword].items()) {
+            settings_name.push_back(key);
+        }
+        config_get_settings_names_answer answer{std::move(settings_name), convert_request_state.at(request_state::success)};
+        send_answer(sock, answer);
+    }
+
+    void get_settings_all(json::json &json_data, uvw::PipeHandle &sock)
+    {
+        LOG_SCOPE_F(INFO, __PRETTY_FUNCTION__);
+        auto cfg = fill_request<config_get_settings>(json_data);
+        DLOG_F(INFO, "cfg.id: %lu", cfg.id.value());
+        if (!config_clients_registry_.at(sock.fileno()).has_loaded(raven::config_id_st{cfg.id})) {
+            send_answer(sock, request_state::unknown_id);
+            return ;
+        }
+        auto config_json_data = db_.get_config(config_clients_registry_.at(sock.fileno()).get_db_id_from(raven::config_id_st{cfg.id}));
+        if (db_.fail()) {
+            send_answer(sock, request_state::db_error);
+            return ;
+        }
+        config_get_settings_answer answer{config_json_data[config_settings_field_keyword], convert_request_state.at(request_state::success)};
+        send_answer(sock, answer);
+    }
+
     void set_alias(json::json &json_data, uvw::PipeHandle &sock)
     {
         LOG_SCOPE_F(INFO, __PRETTY_FUNCTION__);
@@ -445,6 +485,14 @@ namespace raven
             {
                 "SETTING_REMOVE",      [this](json::json &json_data, uvw::PipeHandle &sock) {
                 this->remove_setting(json_data, sock);
+            }},
+            {
+                "SETTING_GET",         [this](json::json &json_data, uvw::PipeHandle &sock) {
+                this->get_setting(json_data, sock);
+            }},
+            {
+                "CONFIG_SETTING_GET",         [this](json::json &json_data, uvw::PipeHandle &sock) {
+                this->get_setting(json_data, sock);
             }},
             {
                 "SETTING_GET",         [this](json::json &json_data, uvw::PipeHandle &sock) {
