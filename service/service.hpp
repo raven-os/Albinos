@@ -374,7 +374,7 @@ namespace raven
         send_answer(sock, answer);
     }
 
-    void get_settings_all(json::json &json_data, uvw::PipeHandle &sock)
+    void get_all_settings(json::json &json_data, uvw::PipeHandle &sock)
     {
         LOG_SCOPE_F(INFO, __PRETTY_FUNCTION__);
         auto cfg = fill_request<config_get_settings>(json_data);
@@ -492,7 +492,7 @@ namespace raven
             }},
             {
                 "CONFIG_GET_SETTINGS",         [this](json::json &json_data, uvw::PipeHandle &sock) {
-                this->get_settings_all(json_data, sock);
+                this->get_all_settings(json_data, sock);
             }},
             {
                 "CONFIG_GET_SETTINGS_NAMES",         [this](json::json &json_data, uvw::PipeHandle &sock) {
@@ -1105,7 +1105,7 @@ namespace raven
         }
     }
 
-    TEST_CASE_CLASS ("get_settings_all request")
+    TEST_CASE_CLASS ("get_all_settings request")
     {
         SUBCASE("get_settings_names with unknown id") {
             auto data = R"({"REQUEST_NAME": "CONFIG_GET_SETTINGS","CONFIG_ID": 42, "SETTING_NAME": "titi"})"_json;
@@ -1113,7 +1113,7 @@ namespace raven
             test_client_server_communication(std::move(data), std::move(answer), true);
         }
 
-        SUBCASE("get_settings_all with a single settings") {
+        SUBCASE("get_all_settings with a single settings") {
             service service_{std::filesystem::current_path() / "albinos_service_test_internal.db"};
             auto answer_create = service_.db_.config_create("ma_config");
             auto request_load = R"({"REQUEST_NAME": "CONFIG_LOAD", "CONFIG_KEY" : 42})"_json;
@@ -1177,7 +1177,7 @@ namespace raven
             test_run_and_clean_client(service_, loop);
         }
 
-        SUBCASE("get_settings_all with multiple settings") {
+        SUBCASE("get_all_settings with multiple settings") {
             service service_{std::filesystem::current_path() / "albinos_service_test_internal.db"};
             auto answer_create = service_.db_.config_create("ma_config");
             auto request_load = R"({"REQUEST_NAME": "CONFIG_LOAD", "CONFIG_KEY" : 42})"_json;
