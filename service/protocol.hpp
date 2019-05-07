@@ -210,7 +210,7 @@ namespace raven
 
   void to_json(raven::json::json &json_data, const config_get_settings_names_answer &cfg)
   {
-      json_data = {{"SETTINGS_NAME", cfg.settings_name},
+      json_data = {{"SETTINGS_NAMES", cfg.settings_name},
                    {"REQUEST_STATE", cfg.request_state}};
   }
 
