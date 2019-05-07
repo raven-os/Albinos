@@ -1028,7 +1028,7 @@ namespace raven
                             break;
                         }
                         case 2: // get setting
-                            expected_answer = R"({"SETTINGS_NAME" : ["titi"], "REQUEST_STATE" : "SUCCESS"})"_json;
+                            expected_answer = R"({"SETTINGS_NAMES" : ["titi"], "REQUEST_STATE" : "SUCCESS"})"_json;
                             CHECK(json_data == expected_answer);
                             sock.close();
                             break;
