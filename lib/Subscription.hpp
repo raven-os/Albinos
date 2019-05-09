@@ -9,6 +9,7 @@
 #pragma once
 
 # include "Albinos.h"
+# include <string>
 
 namespace Albinos
 {
@@ -16,10 +17,17 @@ namespace Albinos
   {
   private:
 
+    std::string associatedSetting;
+    FCPTR_ON_CHANGE_NOTIFIER callBack;
+    void *associatedData;
+
   public:
 
-    Subscription();
+    Subscription(std::string const &associatedSetting, FCPTR_ON_CHANGE_NOTIFIER callBack, void *associatedData);
     ~Subscription();
+
+    void executeCallBack(char const *newValue) const;
+    std::string const &getAssociatedSetting() const;
 
   };
 }

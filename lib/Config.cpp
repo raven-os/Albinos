@@ -309,3 +309,11 @@ Albinos::ReturnedValue Albinos::Config::deleteConfig() const
 {
   return SUCCESS;
 }
+
+///
+/// \todo implementation
+///
+Albinos::ReturnedValue Albinos::Config::pullSubscriptions() const
+{
+  return SUCCESS;
+}

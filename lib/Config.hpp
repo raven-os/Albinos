@@ -29,6 +29,7 @@ namespace Albinos
     std::optional<std::string> name;
     uint32_t configId;
     std::string lastRequestedValue;
+    std::vector<Subscription*> settingsSubscriptions;
 
     std::optional<KeyWrapper> key;
     std::optional<KeyWrapper> roKey;
@@ -73,6 +74,7 @@ namespace Albinos
     ReturnedValue deleteConfig() const;
 
     ReturnedValue subscribeToSetting(char const *settingName, void *data, FCPTR_ON_CHANGE_NOTIFIER onChange, Subscription **subscription);
+    ReturnedValue pullSubscriptions() const;
 
   };
 }
