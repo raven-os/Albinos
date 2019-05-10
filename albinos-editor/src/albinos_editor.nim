@@ -10,6 +10,7 @@ when isMainModule:
         echo "CLI mode invoked"
     elif args["--gui"]:
         echo "GUI mode invoked"
+        echo args
 
 #import gintro/[gtk, glib, gobject, gio, gtksource]
 

@@ -1,3 +1,5 @@
+import docopt
+
 let doc = """
 albinos_editor
 
@@ -11,11 +13,6 @@ Options:
     --cli   Launch albinos_editor in cli mode.
     --gui   Launch albinos_editor in gui mode.
 """
-
-import strutils, unicode
-import docopt
-import terminal
-import typeinfo
 
 proc parseOpt*: Table[system.string, docopt.Value] =
     return docopt(doc)
