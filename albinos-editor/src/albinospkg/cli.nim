@@ -1,11 +1,11 @@
-import ../liblinenoise/linenoise
+import linenoise
 
 proc launchCLI*() =
-    discard linenoiseHistorySetMaxLen(500)
+    discard historySetMaxLen(500)
     while true:
-        let res = linenoise("> ")
+        let res = readLine("> ")
         if res == "exit": break
         if res == "clear":
-            linenoiseClearScreen()
-        discard linenoiseHistoryAdd(res)
-        linenoiseFree(res)
+            clearScreen()
+        discard historyAdd(res)
+        free(res)
