@@ -1,11 +1,12 @@
+import terminal
+import rdstdin
 import linenoise
 
 proc launchCLI*() =
-    discard historySetMaxLen(500)
-    while true:
-        let res = readLine("> ")
-        if res == "exit": break
-        if res == "clear":
-            clearScreen()
-        discard historyAdd(res)
-        free(res)
+  while true:
+    var line: TaintedString
+    let res = readLineFromStdin("> ", line)
+    if res == false: continue
+    if line.string == "exit": break
+    if line.string == "clear":
+      clearScreen()
