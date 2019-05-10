@@ -5,7 +5,7 @@ include albinospkg/options
 when isMainModule:
     let args = parseOpt()
     if args["config"]:
-        echo "I invoke config related functionality"
+        echo "config options invoked"
     elif args["--cli"]:
         echo "CLI mode invoked"
     elif args["--gui"]:
