@@ -24,7 +24,7 @@ proc launchCLI*() =
         var line: TaintedString
         let res = readLineFromStdin("> ", line)
         if res == false:
-            styledEcho(fgMagenta, "readline error, quitting CLI mode...")
+            styledEcho(fgMagenta, "Quitting CLI mode...")
             break
         let args = line.string.unindent.splitWhitespace
         case args[0]:
