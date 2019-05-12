@@ -6,6 +6,8 @@ import linenoise
 import cmd
 import ../libalbinos/albinos
 
+var currentConfig: ptr Config
+
 const englishColorizedTable =
    {
     "help_cmd_msg": "\t\e[93mhelp\e[39m (show this message)\n\t",
@@ -27,6 +29,15 @@ var globalHelp = "Usage:\n" & msgTable["help_cmd_msg"] & msgTable[
     "exit_cmd_msg"] & msgTable["clear_cmd_msg"] & msgTable[
     "config_create_cmd_msg"]
 
+proc completion(word: cstring, lc: ptr Completions) {.cdecl.} =
+   if word[0] == 'h':
+      addCompletion(lc, "help")
+   if word[0] == 'e':
+      addCompletion(lc, "exit")
+   if word[0] == 'c':
+      addCompletion(lc, "config create")
+      addCompletion(lc, "clear") 
+
 proc yes(question: string): bool =
    echo question, " (\e[93my\e[39m/\e[93mN\e[39m)"
    while true:
@@ -40,15 +51,18 @@ proc yes(question: string): bool =
          of "n", "N", "no", "No": return false
          else: echo "Please be clear: yes or no, you wrote ", line, "."
 
+proc handleLoadConfigCmd() =
+   echo "Loading configuration"
+
 proc handleCreateConfigCmd(args: openArray[string]) =
    styledEcho "Creating configuration ", fgMagenta, args[1], fgWhite, "..."
-   let (cfg, result) = createCfg(args[1])
+   let (currentConfig, result) = createCfg(args[1])
    case result:
       of ReturnedValue.SUCCESS:
          var regularKey: Key
          var readOnlyKey: Key
-         discard getConfigKey(cfg, addr regularKey)
-         discard getReadOnlyConfigKey(cfg, addr readOnlyKey)
+         discard getConfigKey(currentConfig, addr regularKey)
+         discard getReadOnlyConfigKey(currentConfig, addr readOnlyKey)
          styledEcho "Successfuly created configuration ", fgMagenta, args[
                     1], fgWhite
          styledEcho "Regular key: ", fgGreen,
@@ -60,7 +74,7 @@ proc handleCreateConfigCmd(args: openArray[string]) =
          return
    if yes("Do you want to load the configuration: " & "\e[35m" & args[
             1] & "\e[39m" & " ?"):
-      echo "Loading configuration"
+      handleLoadConfigCmd()
 
 proc handleConfigCmd(configCmdArgs: openArray[string]) =
    case len(configCmdArgs):
@@ -99,4 +113,6 @@ proc cliLoop() =
 
 proc launchCLI*() =
    discard historySetMaxLen(500)
+   #var res : ptr CompletionCallback = $completion
+   setCompletionCallback(cast[ptr CompletionCallback](completion))
    cliLoop()
