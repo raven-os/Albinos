@@ -113,6 +113,5 @@ proc cliLoop() =
 
 proc launchCLI*() =
    discard historySetMaxLen(500)
-   #var res : ptr CompletionCallback = $completion
    setCompletionCallback(cast[ptr CompletionCallback](completion))
    cliLoop()
