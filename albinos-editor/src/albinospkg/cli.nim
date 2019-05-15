@@ -1,4 +1,5 @@
 import tables
+import nimcx
 import terminal
 import strutils
 import rdstdin
@@ -8,26 +9,36 @@ import ../libalbinos/albinos
 
 var currentConfig: ptr Config
 
-const englishColorizedTable =
-   {
-    "help_cmd_msg": "\t\e[93mhelp\e[39m (show this message)\n\t",
-    "exit_cmd_msg": "\e[93mexit\e[39m (quitting the app)\n\t",
-    "clear_cmd_msg": "\e[93mclear\e[39m (clear the screen)\n\t",
-    "config_create_cmd_msg": "\e[93mconfig\e[39m \e[94mcreate\e[39m <\e[95mname\e[39m> (create a config with the given name)"
-   }.toTable
-
 const englishTable =
    {
-    "help_cmd_msg": "help (show this message)\n\t",
-    "exit_cmd_msg": "exit (quitting the app)\n\t",
-    "clear_cmd_msg": "clear (clear the screen)\n\t",
+    "usage": "Usage:",
+    "help_cmd_msg": "help (show this message)",
+    "exit_cmd_msg": "exit (quitting the app)",
+    "clear_cmd_msg": "clear (clear the screen)",
     "config_create_cmd_msg": "config create <name> (create a config with the given name)"
    }.toTable
 
-var msgTable = englishColorizedTable
-var globalHelp = "Usage:\n" & msgTable["help_cmd_msg"] & msgTable[
-    "exit_cmd_msg"] & msgTable["clear_cmd_msg"] & msgTable[
-    "config_create_cmd_msg"]
+var msgTable = englishTable
+
+proc globalHelpMsg() =
+   var nocolor: bool = false
+   println(msgTable["usage"])
+   printLnBiCol(msgTable["help_cmd_msg"],
+         colLeft = if nocolor == true: termwhite else: yellow,
+      colRight = termwhite, sep = " ", xpos = 8)
+   printLnBiCol(msgTable["exit_cmd_msg"],
+         colLeft = if nocolor == true: termwhite else: yellow,
+         colRight = termwhite, sep = " ", xpos = 8)
+   printLnBiCol(msgTable["clear_cmd_msg"],
+         colLeft = if nocolor == true: termwhite else: yellow,
+         colRight = termwhite, sep = " ", xpos = 8)
+   printBiCol("config create", colLeft = if nocolor ==
+         true: termwhite else: yellow, colRight = if nocolor ==
+         true: termwhite else: dodgerblue,
+         sep = " ", xpos = 8)
+   printHL("<name>", substr = "name", col = if nocolor ==
+         true: termwhite else: magenta)
+   printLn(" (create a config with the given name)")
 
 proc completion(word: cstring, lc: ptr Completions) {.cdecl.} =
    if word[0] == 'h':
@@ -36,7 +47,7 @@ proc completion(word: cstring, lc: ptr Completions) {.cdecl.} =
       addCompletion(lc, "exit")
    if word[0] == 'c':
       addCompletion(lc, "config create")
-      addCompletion(lc, "clear") 
+      addCompletion(lc, "clear")
 
 proc yes(question: string): bool =
    echo question, " (\e[93my\e[39m/\e[93mN\e[39m)"
@@ -59,8 +70,8 @@ proc handleCreateConfigCmd(args: openArray[string]) =
    let (currentConfig, result) = createCfg(args[1])
    case result:
       of ReturnedValue.SUCCESS:
-         var regularKey: Key
-         var readOnlyKey: Key
+         var regularKey: albinos.Key
+         var readOnlyKey: albinos.Key
          discard getConfigKey(currentConfig, addr regularKey)
          discard getReadOnlyConfigKey(currentConfig, addr readOnlyKey)
          styledEcho "Successfuly created configuration ", fgMagenta, args[
@@ -83,9 +94,9 @@ proc handleConfigCmd(configCmdArgs: openArray[string]) =
             of "create":
                handleCreateConfigCmd(configCmdArgs[1..2])
             else:
-               echo globalHelp
+               globalHelpMsg()
       else:
-         echo globalHelp
+         globalHelpMsg()
 
 proc cliLoop() =
    while true:
@@ -100,7 +111,7 @@ proc cliLoop() =
       case args[0]:
          of "exit": break
          of "help":
-            echo globalHelp
+            globalHelpMsg()
             continue
          of "clear":
             clearScreen()
@@ -108,10 +119,11 @@ proc cliLoop() =
          of "config":
             handleConfigCmd(toOpenArray(args, 0, len(args) - 1))
          else:
-            echo globalHelp
+            globalHelpMsg()
 
 
 proc launchCLI*() =
+   globalHelpMsg()
    discard historySetMaxLen(500)
    setCompletionCallback(cast[ptr CompletionCallback](completion))
    cliLoop()
