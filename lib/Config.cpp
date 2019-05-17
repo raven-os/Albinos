@@ -2,22 +2,19 @@
 
 ///
 /// \todo handle event
-/// \todo handle status
 ///
 void Albinos::Config::parseResponse(json const &data)
 {
   std::string status;
   try {
-    //status = data.at("REQUEST_STATE").get<std::string>();
-    status = "STILL_NO_STATUS_SENT";
+    status = data.at("REQUEST_STATE").get<std::string>();
   } catch (...) {
     // if the data received do not contain 'REQUEST_STATE', it's an event
-    std::string setting = data.at("SETTING_NAME").get<std::string>();
-    std::string newValue = data.at("UPDATE").get<std::string>();
-    bool isDelete = data.at("DELETE").get<bool>();
+    settingsUpdates.push_back({data.at("SETTING_NAME").get<std::string>(), data.at("UPDATE").get<std::string>(), data.at("DELETE").get<bool>()});
+    if (waitingForResponse)
+      socketLoop->run<uvw::Loop::Mode::ONCE>();
     return;
   }
-  // std::cout << "request status " << status << std::endl;
 
   try {
     lastRequestedValue = data.at("SETTING_VALUE").get<std::string>();
@@ -72,7 +69,9 @@ void Albinos::Config::initSocket()
     sock.read();
     // if the service doesn't respond after 200ms, stop the loop
     timer->start(writeTimeout, std::chrono::duration<uint64_t, std::milli>(1000));
+    waitingForResponse = true;
     socketLoop->run<uvw::Loop::Mode::ONCE>();
+    waitingForResponse = false;
   });
   timer->on<uvw::TimerEvent>([this](const uvw::TimerEvent&, uvw::TimerHandle &handle) {
     //std::cout << "Timeout" << std::endl;
@@ -252,14 +251,16 @@ Albinos::ReturnedValue Albinos::Config::include(Key *inheritFrom, int position)
 }
 
 ///
-/// \todo implementation
+/// \todo get errors
 ///
 Albinos::ReturnedValue Albinos::Config::subscribeToSetting(char const *settingName, void *data, FCPTR_ON_CHANGE_NOTIFIER onChange, Subscription **subscription)
 {
-  (void)settingName;
-  (void)data;
-  (void)onChange;
-  (void)subscription;
+  json request;
+  *subscription = new Subscription(settingName, onChange, data);
+  request["REQUEST_NAME"] = "SUBSCRIBE_SETTING";
+  request["CONFIG_ID"] = configId;
+  request["SETTING_NAME"] = settingName;
+  sendJson(request);
   return SUCCESS;
 }
 
@@ -313,7 +314,12 @@ Albinos::ReturnedValue Albinos::Config::deleteConfig() const
 ///
 /// \todo implementation
 ///
-Albinos::ReturnedValue Albinos::Config::pullSubscriptions() const
+Albinos::ReturnedValue Albinos::Config::pullSubscriptions()
 {
+  socketLoop->run<uvw::Loop::Mode::DEFAULT>();
+  while (!settingsUpdates.empty()) {
+    settingsSubscriptions.at(settingsUpdates.back().name)->executeCallBack(settingsUpdates.back().isDelete ? nullptr : settingsUpdates.back().value.c_str());
+    settingsUpdates.pop_back();
+  }
   return SUCCESS;
 }

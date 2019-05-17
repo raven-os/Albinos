@@ -3,7 +3,7 @@
 /// \brief allow the user to manage his callbacks
 /// \bug
 /// \see
-/// \todo implement the struct
+/// \todo
 ///
 
 #pragma once
@@ -13,6 +13,13 @@
 
 namespace Albinos
 {
+  struct SettingUpdatedData
+  {
+    std::string name;
+    std::string value;
+    bool isDelete;
+  };
+
   class Subscription
   {
   private:

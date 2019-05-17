@@ -12,10 +12,12 @@
 # include <filesystem>
 # include <iostream>
 # include <optional>
+# include <map>
 # include "Albinos.h"
 # include "uvw.hpp"
 # include "json.hpp"
 # include "KeyWrapper.hpp"
+# include "Subscription.hpp"
 
 namespace Albinos
 {
@@ -29,7 +31,9 @@ namespace Albinos
     std::optional<std::string> name;
     uint32_t configId;
     std::string lastRequestedValue;
-    std::vector<Subscription*> settingsSubscriptions;
+    std::map<std::string, Subscription*> settingsSubscriptions;
+    std::vector<SettingUpdatedData> settingsUpdates;
+    bool waitingForResponse{false};
 
     std::optional<KeyWrapper> key;
     std::optional<KeyWrapper> roKey;
@@ -74,7 +78,7 @@ namespace Albinos
     ReturnedValue deleteConfig() const;
 
     ReturnedValue subscribeToSetting(char const *settingName, void *data, FCPTR_ON_CHANGE_NOTIFIER onChange, Subscription **subscription);
-    ReturnedValue pullSubscriptions() const;
+    ReturnedValue pullSubscriptions();
 
   };
 }

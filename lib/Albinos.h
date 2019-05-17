@@ -332,7 +332,7 @@ namespace Albinos
     /// \param the config
     /// \return error code
     ///
-    enum ReturnedValue pullSubscriptions(struct Config const*);
+    enum ReturnedValue pullSubscriptions(struct Config*);
 
 #ifdef __cplusplus
   }
