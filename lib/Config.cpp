@@ -10,7 +10,15 @@ void Albinos::Config::parseResponse(json const &data)
     status = data.at("REQUEST_STATE").get<std::string>();
   } catch (...) {
     // if the data received do not contain 'REQUEST_STATE', it's an event
-    settingsUpdates.push_back({data.at("SETTING_NAME").get<std::string>(), data.at("UPDATE").get<std::string>(), data.at("DELETE").get<bool>()});
+    ModifType modif;
+    std::string modifStr = data.at("SUBSCRIPTION_EVENT_TYPE").get<std::string>();
+    if (modifStr == "UPDATE")
+      modif = UPDATE;
+    else if (modifStr == "DELETE")
+      modif = DELETE;
+    else
+      throw std::exception();
+    settingsUpdates.push_back({data.at("SETTING_NAME").get<std::string>(), modif});
     if (waitingForResponse)
       socketLoop->run<uvw::Loop::Mode::ONCE>();
     return;
@@ -318,7 +326,7 @@ Albinos::ReturnedValue Albinos::Config::pullSubscriptions()
 {
   socketLoop->run<uvw::Loop::Mode::DEFAULT>();
   while (!settingsUpdates.empty()) {
-    settingsSubscriptions.at(settingsUpdates.back().name)->executeCallBack(settingsUpdates.back().isDelete ? nullptr : settingsUpdates.back().value.c_str());
+    settingsSubscriptions.at(settingsUpdates.back().name)->executeCallBack(settingsUpdates.back().modif);
     settingsUpdates.pop_back();
   }
   return SUCCESS;

@@ -47,9 +47,18 @@ namespace Albinos
       };
 
     ///
+    /// \brief indicate the type of modification which happen to subscribed setting
+    ///
+    enum ModifType
+      {
+       UPDATE,
+       DELETE,
+      };
+
+    ///
     /// \brief type of function pointer for setting change subscription
     ///
-    typedef void (*FCPTR_ON_CHANGE_NOTIFIER)(void *data, char const *newValue);
+    typedef void (*FCPTR_ON_CHANGE_NOTIFIER)(void *data, enum ModifType);
 
     ///
     /// \brief indicate the key type

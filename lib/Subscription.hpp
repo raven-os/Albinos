@@ -16,8 +16,7 @@ namespace Albinos
   struct SettingUpdatedData
   {
     std::string name;
-    std::string value;
-    bool isDelete;
+    ModifType modif;
   };
 
   class Subscription
@@ -33,7 +32,7 @@ namespace Albinos
     Subscription(std::string const &associatedSetting, FCPTR_ON_CHANGE_NOTIFIER callBack, void *associatedData);
     ~Subscription();
 
-    void executeCallBack(char const *newValue) const;
+    void executeCallBack(ModifType) const;
     std::string const &getAssociatedSetting() const;
 
   };
