@@ -323,7 +323,7 @@ Albinos::ReturnedValue Albinos::Config::deleteConfig() const
 ///
 /// \todo error management
 ///
-Albinos::ReturnedValue Albinos::Config::pullSubscriptions()
+Albinos::ReturnedValue Albinos::Config::pollSubscriptions()
 {
   while (socketLoop->run<uvw::Loop::Mode::NOWAIT>());
   while (!settingsUpdates.empty()) {

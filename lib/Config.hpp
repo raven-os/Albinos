@@ -78,7 +78,7 @@ namespace Albinos
     ReturnedValue deleteConfig() const;
 
     ReturnedValue subscribeToSetting(char const *settingName, void *data, FCPTR_ON_CHANGE_NOTIFIER onChange, Subscription **subscription);
-    ReturnedValue pullSubscriptions();
+    ReturnedValue pollSubscriptions();
 
   };
 }
