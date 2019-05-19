@@ -265,6 +265,7 @@ Albinos::ReturnedValue Albinos::Config::subscribeToSetting(char const *settingNa
 {
   json request;
   *subscription = new Subscription(settingName, onChange, data);
+  settingsSubscriptions[settingName] = *subscription;
   request["REQUEST_NAME"] = "SUBSCRIBE_SETTING";
   request["CONFIG_ID"] = configId;
   request["SETTING_NAME"] = settingName;
@@ -320,11 +321,11 @@ Albinos::ReturnedValue Albinos::Config::deleteConfig() const
 }
 
 ///
-/// \todo implementation
+/// \todo error management
 ///
 Albinos::ReturnedValue Albinos::Config::pullSubscriptions()
 {
-  socketLoop->run<uvw::Loop::Mode::DEFAULT>();
+  while (socketLoop->run<uvw::Loop::Mode::NOWAIT>());
   while (!settingsUpdates.empty()) {
     settingsSubscriptions.at(settingsUpdates.back().name)->executeCallBack(settingsUpdates.back().modif);
     settingsUpdates.pop_back();
