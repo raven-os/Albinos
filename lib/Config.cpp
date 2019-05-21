@@ -17,7 +17,7 @@ void Albinos::Config::parseResponse(json const &data)
     else if (modifStr == "DELETE")
       modif = DELETE;
     else
-      throw std::exception();
+      throw LibError();
     settingsUpdates.push_back({data.at("SETTING_NAME").get<std::string>(), modif});
     if (waitingForResponse)
       socketLoop->run<uvw::Loop::Mode::ONCE>();
@@ -55,8 +55,8 @@ void Albinos::Config::initSocket()
   std::string socketPath = (std::filesystem::temp_directory_path() / "raven-os_service_albinos.sock").string();
 
   socket->on<uvw::ErrorEvent>([](const uvw::ErrorEvent&e, uvw::PipeHandle&) {
-    //std::cout << "Error" << std::endl;
-    throw std::exception();
+    std::cout << "Error" << std::endl;
+    throw LibError();
   });
   socket->once<uvw::ConnectEvent>([](const uvw::ConnectEvent&, uvw::PipeHandle&) {
     //std::cout << "All succeed" << std::endl;

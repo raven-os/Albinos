@@ -13,6 +13,7 @@
 # include <iostream>
 # include <optional>
 # include <map>
+# include "LibError.hpp"
 # include "Albinos.h"
 # include "uvw.hpp"
 # include "json.hpp"
