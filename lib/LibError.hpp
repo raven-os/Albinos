@@ -2,7 +2,7 @@
 
 # include <exception>
 
-class   LibError: public std::exception
+class LibError
 {
 
 public:
