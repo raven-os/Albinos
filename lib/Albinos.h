@@ -315,8 +315,8 @@ namespace Albinos
     /// \return error code
     ///
     ///	To stop the subscription, unsubscribe() must be called.\n
-    ///	To get the subsrption's user data one can use getSubscriptionUserData()\n
-    ///	To get the subsrption's setting name one can use getSubscriptionSettingName()
+    ///	To get the subscription's user data one can use getSubscriptionUserData()\n
+    ///	To get the subscription's setting name one can use getSubscriptionSettingName()
     ///
     enum ReturnedValue subscribeToSetting(struct Config *config, char const *name, void *data, FCPTR_ON_CHANGE_NOTIFIER onChange, struct Subscription **subscription);
 
