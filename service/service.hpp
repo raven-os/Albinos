@@ -189,10 +189,12 @@ namespace raven
                   cfg.config_read_only_key.value().value().c_str());
 
         config_id_st id;
+        config_permission perm = config_permission::readwrite;
         if (cfg.config_key) {
             id = db_.get_config_id(cfg.config_key.value());
         } else if (cfg.config_read_only_key) {
             id = db_.get_config_id(cfg.config_read_only_key.value());
+            perm = config_permission::readonly;
         } else {
             send_answer(sock, request_state::unknown_request);
             return ;
@@ -215,7 +217,7 @@ namespace raven
             return ;
         }
 
-        config_id_st temp_id = config_clients_registry_.at(sock.fileno()).insert_db_id(id);
+        config_id_st temp_id = config_clients_registry_.at(sock.fileno()).insert_db_id(id, perm);
         // TODO get permision for the key and store it with the id
         // TODO add ref_counting
         // TODO get full config in cache
@@ -267,9 +269,14 @@ namespace raven
             return;
         }
 
+        // TODO check if loaded first
         auto db_id = config_clients_registry_.at(sock.fileno()).get_db_id_from(cfg.id);
 
-        auto config_json_data = db_.get_config(db_id);
+      if (config_clients_registry_.at(sock.fileno()).get_permission(cfg.id) != config_permission::readwrite) {
+        send_answer(sock, request_state::unauthorized);
+        return ;
+      }
+      auto config_json_data = db_.get_config(db_id);
         if (db_.fail()) {
             send_answer(sock, request_state::db_error);
             return ;
@@ -313,6 +320,10 @@ namespace raven
         // Workaround : get db_id from the client class
         if (!config_clients_registry_.at(sock.fileno()).has_loaded(cfg.id))
             return ;
+      if (config_clients_registry_.at(sock.fileno()).get_permission(cfg.id) != config_permission::readwrite) {
+        send_answer(sock, request_state::unauthorized);
+        return ;
+      }
         auto db_id = config_clients_registry_.at(sock.fileno()).get_db_id_from(cfg.id);
         for (auto &[fileno, client] : config_clients_registry_)
         {
@@ -772,6 +783,60 @@ namespace raven
             client->connect(service_.socket_path_.string());
             test_run_and_clean_client(service_, loop);
         };
+
+      SUBCASE ("update_setting without rights") {
+        using namespace std::string_literals;
+        service service_{std::filesystem::current_path() / "albinos_service_test_internal.db"};
+        auto answer_create = service_.db_.config_create("ma_config");
+        auto request_load = R"({"REQUEST_NAME": "CONFIG_LOAD", "READONLY_CONFIG_KEY" : 42})"_json;
+        request_load["READONLY_CONFIG_KEY"] = answer_create.readonly_config_key.value();
+        auto expected_answer = R"({"REQUEST_STATE":"SUCCESS"})"_json;
+        CHECK_FALSE(service_.create_socket());
+        auto loop = uvw::Loop::getDefault();
+        auto client = loop->resource<uvw::PipeHandle>();
+
+        client->once<uvw::ConnectEvent>([&request_load](const uvw::ConnectEvent &, uvw::PipeHandle &handle) {
+            CHECK(handle.writable());
+            CHECK(handle.readable());
+            auto request_str = request_load.dump();
+            handle.write(request_str.data(), static_cast<unsigned int>(request_str.size()));
+            handle.read();
+        });
+
+        client->on<uvw::DataEvent>(
+          [&expected_answer, &service_](const uvw::DataEvent &data, uvw::PipeHandle &sock) {
+              static int step = 0;
+              static size_t id = 0;
+              std::string_view data_str(data.data.get(), data.length);
+              auto json_data = json::json::parse(data_str);
+              auto json_data_str = json_data.dump();
+              switch (step)
+              {
+                case 0:// load config
+                {
+                  CHECK(json_data.at("REQUEST_STATE").get<std::string>() ==
+                        expected_answer.at("REQUEST_STATE").get<std::string>());
+                  auto request = R"({"REQUEST_NAME": "SETTING_UPDATE","CONFIG_ID": 42,"SETTINGS_TO_UPDATE": {"foo": "bar"}})"_json;
+                  id = json_data.at("CONFIG_ID").get<std::size_t>();
+                  request["CONFIG_ID"] = id;
+                  auto request_str = request.dump();
+                  expected_answer = R"({"REQUEST_STATE":"UNAUTHORIZED"})"_json;
+                  sock.write(request_str.data(), static_cast<unsigned int>(request_str.size()));
+                  sock.read();
+                  break;
+                }
+                case 1: // update setting (unauthorized)
+                  CHECK(json_data.at("REQUEST_STATE").get<std::string>() ==
+                        expected_answer.at("REQUEST_STATE").get<std::string>());
+                  sock.close();
+                  break;
+              }
+              step += 1;
+          });
+
+        client->connect(service_.socket_path_.string());
+        test_run_and_clean_client(service_, loop);
+      };
 
         SUBCASE ("update_setting with valid id and multiple settings") {
             using namespace std::string_literals;
